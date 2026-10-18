@@ -1,0 +1,276 @@
+-- Key & Configuration
+local CORRECT_KEY = "RealKidHubKeyKakwowohLapqowiwnBxksowowjie"
+local LINK_GET_KEY = "https://link4m.net/0MEA8wX5"
+local SAVE_FILE_NAME = "RealKidHub_KeyData.json"
+local EXPIRE_TIME = 86400 -- 24 giờ tính bằng giây (3600 * 24)
+
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
+
+-- Hàm lưu key và thời gian vào máy
+local function saveKeyData(key)
+    if writefile then
+        local data = {
+            key = key,
+            timestamp = os.time()
+        }
+        pcall(function()
+            writefile(SAVE_FILE_NAME, HttpService:JSONEncode(data))
+        end)
+    end
+end
+
+-- Hàm kiểm tra key đã lưu còn hạn không (dưới 24h)
+local function isSavedKeyValid()
+    if readfile and isfile and isfile(SAVE_FILE_NAME) then
+        local success, result = pcall(function()
+            local data = HttpService:JSONDecode(readfile(SAVE_FILE_NAME))
+            if data and data.key == CORRECT_KEY and data.timestamp then
+                local currentTime = os.time()
+                if (currentTime - data.timestamp) < EXPIRE_TIME then
+                    return true
+                end
+            end
+        end)
+        if success and result then
+            return true
+        end
+    end
+    return false
+end
+
+-- Hàm thực thi script chính
+local function loadMainScript()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/realkidhub/realkid/refs/heads/main/main.lua"))()
+    end)
+    if not success then
+        warn("Failed to load script: " .. tostring(err))
+    end
+end
+
+-- KIỂM TRA TỰ ĐỘNG: Nếu đã xác minh trong vòng 24h thì load thẳng script
+if isSavedKeyValid() then
+    loadMainScript()
+    return -- Dừng không tạo giao diện nhập key nữa
+end
+
+-- ==================== GIAO DIỆN UI ====================
+
+-- ScreenGui Setup
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Parent = CoreGui
+ScreenGui.Name = "RealKidKeySystem"
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+-- Main Container (Transparent Glass Style)
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(10, 15, 25)
+MainFrame.BackgroundTransparency = 0.25
+MainFrame.Position = UDim2.new(0.5, -210, 0.5, -140)
+MainFrame.Size = UDim2.new(0, 420, 0, 280)
+MainFrame.BorderSizePixel = 0
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 16)
+UICorner.Parent = MainFrame
+
+-- Ice Blue Glowing Border
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Parent = MainFrame
+UIStroke.Color = Color3.fromRGB(0, 210, 255)
+UIStroke.Thickness = 2
+UIStroke.Transparency = 0.2
+
+-- Title Label
+local Title = Instance.new("TextLabel")
+Title.Parent = MainFrame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0, 0, 0, 25)
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Font = Enum.Font.FredokaOne
+Title.Text = "RealKid Hub"
+Title.TextColor3 = Color3.fromRGB(0, 230, 255)
+Title.TextSize = 28
+
+-- Subtitle Label
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Parent = MainFrame
+SubTitle.BackgroundTransparency = 1
+SubTitle.Position = UDim2.new(0, 0, 0, 62)
+SubTitle.Size = UDim2.new(1, 0, 0, 20)
+SubTitle.Font = Enum.Font.GothamMedium
+SubTitle.Text = "KEY VERIFICATION SYSTEM"
+SubTitle.TextColor3 = Color3.fromRGB(160, 180, 200)
+SubTitle.TextSize = 11
+
+-- Input Key Box
+local TextBox = Instance.new("TextBox")
+TextBox.Parent = MainFrame
+TextBox.BackgroundColor3 = Color3.fromRGB(20, 30, 45)
+TextBox.BackgroundTransparency = 0.4
+TextBox.Position = UDim2.new(0.08, 0, 0, 100)
+TextBox.Size = UDim2.new(0.84, 0, 0, 48)
+TextBox.Font = Enum.Font.Gotham
+TextBox.PlaceholderText = "Enter key here..."
+TextBox.Text = ""
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.PlaceholderColor3 = Color3.fromRGB(120, 140, 160)
+TextBox.TextSize = 13
+TextBox.ClearTextOnFocus = false
+
+local TextBoxCorner = Instance.new("UICorner")
+TextBoxCorner.CornerRadius = UDim.new(0, 10)
+TextBoxCorner.Parent = TextBox
+
+local TextBoxStroke = Instance.new("UIStroke")
+TextBoxStroke.Parent = TextBox
+TextBoxStroke.Color = Color3.fromRGB(0, 180, 255)
+TextBoxStroke.Thickness = 1
+TextBoxStroke.Transparency = 0.6
+
+-- Button Container Frame
+local ButtonContainer = Instance.new("Frame")
+ButtonContainer.Parent = MainFrame
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.Position = UDim2.new(0.08, 0, 0, 165)
+ButtonContainer.Size = UDim2.new(0.84, 0, 0, 42)
+
+-- Check Key Button
+local CheckKeyButton = Instance.new("TextButton")
+CheckKeyButton.Parent = ButtonContainer
+CheckKeyButton.BackgroundColor3 = Color3.fromRGB(0, 190, 255)
+CheckKeyButton.BackgroundTransparency = 0.15
+CheckKeyButton.Position = UDim2.new(0, 0, 0, 0)
+CheckKeyButton.Size = UDim2.new(0.48, 0, 1, 0)
+CheckKeyButton.Font = Enum.Font.GothamBold
+CheckKeyButton.Text = "CHECK KEY"
+CheckKeyButton.TextColor3 = Color3.fromRGB(10, 15, 25)
+CheckKeyButton.TextSize = 13
+
+local CheckCorner = Instance.new("UICorner")
+CheckCorner.CornerRadius = UDim.new(0, 10)
+CheckCorner.Parent = CheckKeyButton
+
+-- Get Key Button
+local GetKeyButton = Instance.new("TextButton")
+GetKeyButton.Parent = ButtonContainer
+GetKeyButton.BackgroundColor3 = Color3.fromRGB(25, 35, 50)
+GetKeyButton.BackgroundTransparency = 0.3
+GetKeyButton.Position = UDim2.new(0.52, 0, 0, 0)
+GetKeyButton.Size = UDim2.new(0.48, 0, 1, 0)
+GetKeyButton.Font = Enum.Font.GothamBold
+GetKeyButton.Text = "GET KEY"
+GetKeyButton.TextColor3 = Color3.fromRGB(0, 210, 255)
+GetKeyButton.TextSize = 13
+
+local GetCorner = Instance.new("UICorner")
+GetCorner.CornerRadius = UDim.new(0, 10)
+GetCorner.Parent = GetKeyButton
+
+local GetKeyStroke = Instance.new("UIStroke")
+GetKeyStroke.Parent = GetKeyButton
+GetKeyStroke.Color = Color3.fromRGB(0, 190, 255)
+GetKeyStroke.Thickness = 1.2
+GetKeyStroke.Transparency = 0.5
+
+-- Error / Status Label
+local ErrorLabel = Instance.new("TextLabel")
+ErrorLabel.Parent = MainFrame
+ErrorLabel.BackgroundTransparency = 1
+ErrorLabel.Position = UDim2.new(0.08, 0, 0, 222)
+ErrorLabel.Size = UDim2.new(0.84, 0, 0, 25)
+ErrorLabel.Font = Enum.Font.GothamMedium
+ErrorLabel.Text = ""
+ErrorLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+ErrorLabel.TextSize = 12
+
+-- Hover Effects for Buttons
+local function addHoverEffect(button, normalBg, hoverBg)
+    button.MouseEnter:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = hoverBg}):Play()
+    end)
+    button.MouseLeave:Connect(function()
+        TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = normalBg}):Play()
+    end)
+end
+
+addHoverEffect(CheckKeyButton, Color3.fromRGB(0, 190, 255), Color3.fromRGB(50, 220, 255))
+addHoverEffect(GetKeyButton, Color3.fromRGB(25, 35, 50), Color3.fromRGB(35, 50, 75))
+
+-- Smooth Shake Animation on Invalid Key
+local isShaking = false
+local function smoothShakeFrame()
+    if isShaking then return end
+    isShaking = true
+    
+    local originalPosition = UDim2.new(0.5, -210, 0.5, -140)
+    local shakeDistance = 10
+    local shakeSpeed = 25
+    local duration = 0.5
+    local elapsed = 0
+    
+    TweenService:Create(UIStroke, TweenInfo.new(0.2), {Color = Color3.fromRGB(255, 60, 60)}):Play()
+    
+    local connection
+    connection = RunService.RenderStepped:Connect(function(dt)
+        elapsed = elapsed + dt
+        if elapsed < duration then
+            local offset = math.sin(elapsed * shakeSpeed) * shakeDistance * (1 - (elapsed / duration))
+            MainFrame.Position = originalPosition + UDim2.new(0, offset, 0, 0)
+        else
+            MainFrame.Position = originalPosition
+            TweenService:Create(UIStroke, TweenInfo.new(0.4), {Color = Color3.fromRGB(0, 210, 255)}):Play()
+            connection:Disconnect()
+            isShaking = false
+        end
+    end)
+end
+
+-- Get Key Button Event
+GetKeyButton.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(LINK_GET_KEY)
+        ErrorLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+        ErrorLabel.Text = "Key link copied to clipboard!"
+    else
+        ErrorLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+        ErrorLabel.Text = "Clipboard function not supported!"
+    end
+end)
+
+-- Check Key Button Event
+CheckKeyButton.MouseButton1Click:Connect(function()
+    local enteredKey = TextBox.Text
+    if enteredKey == CORRECT_KEY then
+        ErrorLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+        ErrorLabel.Text = "Access Granted! Loading script..."
+        UIStroke.Color = Color3.fromRGB(0, 255, 150)
+        
+        -- Lưu Key lại cho các lần chạy sau trong vòng 24 giờ
+        saveKeyData(enteredKey)
+        
+        -- Smooth Shrink Exit Animation
+        local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        TweenService:Create(MainFrame, tweenInfo, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)}):Play()
+        task.wait(0.4)
+        ScreenGui:Destroy()
+        
+        -- Khởi chạy script chính
+        loadMainScript()
+    else
+        ErrorLabel.TextColor3 = Color3.fromRGB(255, 80, 80)
+        ErrorLabel.Text = "Invalid Key! Please try again."
+        
+        -- Xóa ô nhập key
+        TextBox.Text = ""
+        
+        -- Kích hoạt lắc mượt
+        smoothShakeFrame()
+    end
+end)
